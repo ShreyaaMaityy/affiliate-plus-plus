@@ -6,9 +6,8 @@ build/
 dist/
 
 # Environment files
-client/.env.development
-client/.env.production
-server/.env
+**/.env*
+
 
 # OS-specific
 .DS_Store
