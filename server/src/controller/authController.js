@@ -6,6 +6,7 @@ const { validationResult } = require('express-validator');
 
 // https://www.uuidgenerator.net/
 const secret = process.env.JWT_SECRET;
+const refreshSecret = process.env.JWT_REFRESH_TOKEN_SECRET;
 
 const authController = {
     login: async (request, response) => {
@@ -36,11 +37,22 @@ const authController = {
                 email: data.email,
                 role: data.role ? data.role : 'admin',
                 adminId: data.adminId,
-                credits: data.credits
+                credits: data.credits,
+                subscription: data.subscription
             };
 
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
+                httpOnly: true,
+                secure: true,
+                domain: 'localhost',
+                path: '/'
+            });
+
+            const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
+            // store it in the detabase if you want! stroing in DB will
+            // make refresh tokens more secure
+            response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 domain: 'localhost',
@@ -67,10 +79,24 @@ const authController = {
 
         jwt.verify(token, secret, async (error, user) => {
             if (error) {
+                const refreshToken = request.cookies?.refreshToken;
+                if(refreshToken){
+                    const {newAccessToken, user} = 
+                        await attemptToRefreshToken(refreshToken);
+                    response.cookie('jwtToken', newAccessToken, {
+                        httpOnly: true,
+                        secure: true,
+                        domain: 'localhost',
+                        path: '/'
+                    });
+                    console.log('Refresh token renewed the access token');
+                    return response.json({message: 'User is logged in', user: user});
+                }
+
                 return response.status(401).json({ message: 'Unauthorized access' });
             } else {
-                const latestUserDetails= await Users.findById({_id: user.id});
-                response.json({ message: 'User is logged in', user:  latestUserDetails });
+                const latestUserDetails = await Users.findById({ _id: user.id });
+                response.json({ message: 'User is logged in', user: latestUserDetails });
             }
         });
     },
@@ -95,14 +121,14 @@ const authController = {
                 email: username,
                 password: encryptedPassword,
                 name: name,
-                role:'admin'
+                role: 'admin'
             });
             await user.save();
             const userDetails = {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role, 
+                role: user.role,
                 credits: user.credits
             };
             const token = jwt.sign(userDetails, secret, { expiresIn: '1h' });
@@ -153,11 +179,22 @@ const authController = {
                 username: email,
                 name: name,
                 role: data.role ? data.role : 'admin', // This is the ensure backward compatibility
-                
+                credits: data.credits
             };
 
+            // making 1 minute only for testing, revert it back to 1h
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
+                httpOnly: true,
+                secure: true,
+                domain: 'localhost',
+                path: '/'
+            });
+
+            const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
+            // store it in the detabase if you want! stroing in DB will
+            // make refresh tokens more secure
+            response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 domain: 'localhost',
@@ -169,6 +206,10 @@ const authController = {
             return response.status(500).json({ message: 'Internal server error' });
         }
     },
+
+    refreshToken: async (request, response) => {
+      
+    }
 };
 
 module.exports = authController;

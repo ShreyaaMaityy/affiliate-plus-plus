@@ -16,7 +16,8 @@ import { Spinner } from "react-bootstrap";
 import ManageUsers from "./pages/users/ManageUsers";
 import UnauthorizedAccess from "./components/UnauthorizedAccess";
 import ProtectedRoute from "./rbac/ProtectedRoute";
-import ManagePayment from "./pages/payments/ManagePayments";
+import ManagePayments from "./pages/payments/ManagePayments";
+import AnalyticsDashboard from "./pages/links/AnalyticsDashboard";
 
 function App() {
   // const [userDetails, setUserDetails] = useState(null);
@@ -29,7 +30,6 @@ function App() {
       const response = await axios.post(`${serverEndpoint}/auth/is-user-logged-in`, {}, {
         withCredentials: true
       });
-      // updateUserDetails(response.data.user);
       dispatch({
         type: SET_USER,
         payload: response.data.user
@@ -96,11 +96,15 @@ function App() {
       <Route path="/unauthorized-access" element={userDetails ?
         <UserLayout><UnauthorizedAccess /></UserLayout> :
         <Navigate to="/login" />} />
-
-        <Route path="/manage-payments" element={userDetails ?
-        <UserLayout><ManagePayment/></UserLayout>:
-        <Navigate to="/login"/>}/>
-        
+      <Route path="/manage-payments" element={userDetails ?
+        <UserLayout><ManagePayments /></UserLayout> :
+        <Navigate to="/login" />} />
+      <Route path="/analytics/:id" element={userDetails ?
+        <UserLayout>
+          <AnalyticsDashboard />
+        </UserLayout> :
+        <Navigate to="/login" />
+      } />
     </Routes>
   );
 }
