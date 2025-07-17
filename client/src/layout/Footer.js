@@ -1,8 +1,10 @@
 function Footer() {
     return (
-        <div className="container-fluid bg-light text-center py-3">
-            All rights reserved.
+        <footer className="text-center">
+        <div className="container">
+          <p>&copy; 2025 Affiliate++. All Rights Reserved.</p>
         </div>
+      </footer>
     );
 }
 
