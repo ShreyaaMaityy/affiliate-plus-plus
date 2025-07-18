@@ -33,6 +33,7 @@ app.use(cors(corsOptions));
 app.use('/auth', authRoutes);
 app.use('/links', linksRoutes);
 app.use('/users', userRoutes);
+
 app.use('/payments',paymentRoutes);
 
 const PORT = 5001;

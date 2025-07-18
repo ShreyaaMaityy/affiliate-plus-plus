@@ -51,11 +51,6 @@ function UserHeader() {
                                     </li>
                                 </Can>
                                 <li>
-                                    <Link className="dropdown-item" to="/reset-password">
-                                        Reset Password
-                                    </Link>
-                                </li>
-                                <li>
                                     <Link className="dropdown-item" to="/logout">
                                         Logout
                                     </Link>

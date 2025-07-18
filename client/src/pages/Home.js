@@ -1,6 +1,5 @@
 import React from 'react';
 import './Home.css'; // Make sure to create and link this CSS file
-import { Link } from 'react-router-dom';
 
 function Home() {
   return (
@@ -73,7 +72,7 @@ function Home() {
         <div className="container">
           <h2>Ready to Monetize Your Content?</h2>
           <p className="lead mb-4">Join hundreds of content creators, marketers, and businesses who trust Affiliate++ to manage their links.</p>
-          <Link href="#" className="btn btn-primary btn-lg">Start Your Free Trial Today</Link>
+          <a href="#" className="btn btn-primary btn-lg">Start Your Free Trial Today</a>
         </div>
       </section>
 
