@@ -1,9 +1,22 @@
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Can from "../rbac/Can";
+import axios from "axios";
+import { serverEndpoint } from "../config/config";
 
 function UserHeader() {
     const userDetails = useSelector((state) => state.userDetails);
+    const navigate = useNavigate();
+
+    const handleResetPassword = async () => {
+        if (!userDetails?.email) return;
+        try {
+            await axios.post(`${serverEndpoint}/auth/send-reset-password-token`, { email: userDetails.email });
+            navigate("/reset-password", { state: { email: userDetails.email } });
+        } catch (err) {
+            alert(err?.response?.data?.message || "Failed to send reset code");
+        }
+    };
 
     return (
         <nav className="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
@@ -39,9 +52,7 @@ function UserHeader() {
                             </Link>
                             <ul className="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <Link className="dropdown-item" to="/manage-payments">
-                                        Manage Payments
-                                    </Link>
+                                    <Link className="dropdown-item" to="/manage-payments">Manage Payments</Link>
                                 </li>
                                 <Can permission='canViewUser'>
                                     <li>
@@ -50,6 +61,11 @@ function UserHeader() {
                                         </Link>
                                     </li>
                                 </Can>
+                                <li>
+                                    <button className="dropdown-item" onClick={handleResetPassword} type="button">
+                                        Reset Password
+                                    </button>
+                                </li>
                                 <li>
                                     <Link className="dropdown-item" to="/logout">
                                         Logout

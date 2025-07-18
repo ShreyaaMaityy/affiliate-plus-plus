@@ -1,29 +1,35 @@
 const Links = require("../model/Links");
-const Users = require("../model/Users");
+const Users = require("../model/Users")
 const axios = require('axios');
 const { getDeviceInfo } = require("../util/linkUtil");
-const Clicks = require("../model/Clicks");
+const Clicks = require('../model/Clicks');
+
 
 const linksController = {
     create: async (request, response) => {
         const { campaign_title, original_url, category } = request.body;
 
         try {
-            // We're fetching user details from DB even though we have
+             // we are fetching user details from DB even through we have 
             // it available in request object. The reason is critical operation.
             // We're dealing with money and we want to pull latest information
-            // whenever we're transacting.
-            const user = await Users.findById({ _id: request.user.id });
+            // whenever we're transacting
+            const user = await Users.findById({_id: request.user.id});
 
             const hasActiveSubscription = user.subscription &&
                 user.subscription.status === 'active';
-
-            if (!hasActiveSubscription && user.credits < 1) {
+            
+            if(!hasActiveSubscription && user.credits < 1){
                 return response.status(400).json({
                     message: 'Insufficient credit balance or no active subscription'
                 });
-            }
+            }            
 
+            if(user.credits<1){
+                return response.status(400).json({
+                    message: 'Insufficient credit balance'
+                })
+            }
             const link = new Links({
                 campaignTitle: campaign_title,
                 originalUrl: original_url,
@@ -31,13 +37,11 @@ const linksController = {
                 user: request.user.role === 'admin' ?
                     request.user.id : request.user.adminId
             });
-            await link.save();
-
-            if (!hasActiveSubscription) {
-                user.credits -= 1;
-                await user.save();
-            }
-
+          await link.save();
+          if(!hasActiveSubscription) {
+          user.credits -= 1;
+          await user.save();
+          }
             response.json({
                 data: { linkId: link._id }
             });
@@ -183,28 +187,27 @@ const linksController = {
                 return response.status(404)
                     .json({ error: 'LinkID does not exist' });
             }
-
             const isDevelopment = process.env.NODE_ENV === 'development';
             const ipAddress = isDevelopment
                 ? '8.8.8.8'
-                : request.headers['x-forwarded-for']?.split(',')[0]
+                : request.headers['x-forwaded-for']?.split(',')[0]
                 || request.socket.remoteAddress;
 
-            const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
-            const { city, country, region, lat, lon, isp  } = geoResponse.data;
+            const getResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
+            const { city, country, region, lat, lon, isp } = getResponse.data;
 
             const userAgent = request.headers['user-agent'] || 'unknown';
             const { isMobile, browser } = getDeviceInfo(userAgent);
             const deviceType = isMobile ? 'Mobile' : 'Desktop';
 
-            const referrer = request.get('Referrer') || null;
+            const referrer = request.get('Refferer') || null;
 
             await Clicks.create({
                 linkId: link._id,
                 ip: ipAddress,
                 city: city,
                 country: country,
-                region: region,
+                region : region,
                 latitude: lat,
                 longitude: lon,
                 isp: isp,
@@ -228,11 +231,11 @@ const linksController = {
     },
 
     analytics: async (request, response) => {
-        try {
-            const { linkId, from, to } = request.query;
+        try{
+            const { linkId, from , to } = request.query;
 
-            const link = await Links.findById({ _id: linkId });
-            if (!link) {
+            const link = await Links.findById({_id: linkId });
+            if(!link) {
                 return response.status(404).json({
                     error: 'Link not found'
                 });
@@ -241,7 +244,7 @@ const linksController = {
             const userId = request.user.role === 'admin'
                 ? request.user.id
                 : request.user.adminId
-            if (link.user.toString() !== userId) {
+            if(link.user.toString() !== userId){
                 return response.status(403).json({
                     error: 'Unauthorized'
                 });
@@ -255,9 +258,9 @@ const linksController = {
                 query.clickedAt = { $gte: new Date(from), $lte: new Date(to) };
             }
 
-            const data = await Clicks.find(query).sort({ clickedAt: -1 });
+            const data = await Clicks.find(query).sort({ clickedAt: -1});
             response.json(data);
-        } catch (error) {
+        }catch(error){
             console.log(error);
             return response.status(500).json({
                 message: 'Internal server error'

@@ -1,80 +1,76 @@
 const Razorpay = require('razorpay');
 const { CREDIT_PACKS, PLAN_IDS } = require("../constants/paymentConstants");
-const crypto = require('crypto');
-const Users = require('../model/Users');
+const crypto=require('crypto');
+const Users = require("../model/Users");
 const { request } = require('http');
 
-const razorpay = new Razorpay({
+const razorpay= new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+})
+
 
 const paymentController = {
+    // step #1 and #7 from the sequence diagram of one-time payment workflow
     createOrder: async (request, response) => {
-        try {
-            const { credits } = request.body;
+        try{
+             const { credits } =request.body;
 
-            if (!CREDIT_PACKS[credits]) {
+             if(!CREDIT_PACKS[credits]){
                 return response.status(400).json({
                     message: 'Invalid credit value'
                 });
-            }
+             }
 
-            const amount = CREDIT_PACKS[credits] * 100; // Convert to paisa
+             const amount=CREDIT_PACKS[credits] * 100; // convert to paisa
 
-            const order = await razorpay.orders.create({
+             const order=await razorpay.orders.create({
                 amount: amount,
                 currency: 'INR',
                 receipt: `receipt_${Date.now()}`
-            });
-
-            response.json({
+             });
+             response.json({
                 order: order
-            });
-        } catch (error) {
+             })
+        }catch (error) {
             console.log(error);
-            response.status(500).json({
-                message: 'Internal server error'
-            });
+            response.status(500).json({ message: 'Internal Server Error' });
         }
     },
 
-    verifyOrder: async (request, response) => {
+    verifyOrder:async(request, response) => {
         try {
-            const {
+            const{
                 razorpay_order_id, razorpay_payment_id,
                 razorpay_signature, credits
-            } = request.body;
+            }= request.body;
 
-            const body = razorpay_order_id + "|" + razorpay_payment_id;
-            const expectedSignature = crypto
-                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-                .update(body.toString())
-                .digest('hex');
+            const body=razorpay_order_id+ "|" + razorpay_payment_id;
+            const expectedSignature =   crypto
+              .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+              .update(body.toString())
+              .digest('hex');
 
-            if (expectedSignature !== razorpay_signature) {
-                return response.status(400).json({
-                    message: 'Signature verification failed'
+              if(expectedSignature !== razorpay_signature){
+                return response.status (400).json({
+                    message:'Signature verification failed'
                 });
-            }
+              }
 
-            const user = await Users.findById({ _id: request.user.id });
-            user.credits += Number(credits);
-            await user.save();
-
-            response.json({ user: user });
-        } catch (error) {
+              const user = await Users.findById({_id: request.user.id});
+              user.credits += Number(credits);
+              await user.save();
+              response.json({user:user})
+        }catch (error) {
             console.log(error);
-            response.status(500).json({
-                message: 'Internal server error'
-            });
+            response.status(500).json({ message: 'Internal Server Error' });
         }
     },
 
     createSubscription: async (request, response) => {
-        try {
+        try{
             const { plan_name } = request.body;
-            if (!PLAN_IDS[plan_name]) {
+            if(!PLAN_IDS[plan_name]){
                 return response.status(400).json({
                     message: 'Invalid plan name'
                 });
@@ -89,60 +85,57 @@ const paymentController = {
                     userId: request.user.id
                 }
             });
-            response.json({ subscription: subscription });
-        } catch (error) {
+            response.json({subscription: subscription});
+        }catch(error){
             console.log(error);
-            response.status(500).json({
-                message: 'Internal server error'
+            response.status(500).json({ 
+                message: 'Internal Server Error' 
             });
         }
     },
 
     verifySubscription: async (request, response) => {
-        try {
+        try{
             const { subscription_id } = request.body;
             const subscription = await razorpay.subscriptions.fetch(subscription_id);
-            const user = await Users.findById({ _id: request.user.id });
+            const user = await Users.findById({ _id: request.user.id});
 
-            // We'll use this entry to prevent user from subscribing again
-            // from the UI, while we wait for activated event from razorpay.
             user.subscription = {
                 id: subscription_id,
                 planId: subscription.plan_id,
                 status: subscription.status
             };
             await user.save();
-            response.json({ user: user });
-        } catch (error) {
+            response.json({user:user});
+        }catch(error){
             console.log(error);
-            response.status(500).json({
-                message: 'Internal server error'
+            response.status(500).json({ 
+                message: 'Internal Server Error' 
             });
         }
     },
 
     cancelSubscription: async (request, response) => {
-        try {
+        try{
             const { subscription_id } = request.body;
-
-            if (!subscription_id) {
+            if(!subscription_id){
                 return response.status(400).json({
                     message: 'Subscription ID is mandatory'
                 });
             }
 
             const data = await razorpay.subscriptions.cancel(subscription_id);
-            response.json({ data: data });
-        } catch (error) {
+            response.json({data:data});
+        }catch(error){
             console.log(error);
-            response.status(500).json({
-                message: 'Internal server error'
+            response.status(500).json({ 
+                message: 'Internal Server Error' 
             });
         }
     },
 
-    handleWebhookEvent: async (request, response) => {
-        try {
+    handleWebhookEvent: async (request, response) =>  {
+        try{
             console.log('Received event');
             const signature = request.headers['x-razorpay-signature'];
             const body = request.body;
@@ -150,21 +143,22 @@ const paymentController = {
             const expectedSignature = crypto
                 .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
                 .update(body)
-                .digest('hex');
 
-            if (expectedSignature !== signature) {
+                .digest('hex');
+        
+            if (signature !== expectedSignature) {
                 console.log('Invalid signature');
-                return response.status(400).send('Invalid Signature');
+                return response.status(400).send('Invalid signature');
             }
 
             const payload = JSON.parse(body);
-            console.log(JSON.stringify(payload, 0, 2));
+            console.log(JSON.stringify(payload,0,2));
 
             const event = payload.event;
             const subscriptionData = payload.payload.subscription.entity;
             const razorpaySubscriptionId = subscriptionData.id;
             const userId = subscriptionData.notes?.userId;
-            if (!userId) {
+            if(!userId){
                 console.log('UserId not found in notes');
                 return response.status(400).send('UserId not found in notes');
             }
@@ -194,36 +188,35 @@ const paymentController = {
                     $set: {
                         'subscription.id': razorpaySubscriptionId,
                         'subscription.status': newStatus,
-                        'subscription.planId': subscriptionData.plan_id,
                         'subscription.start': subscriptionData.start_at
-                            ? new Date(subscriptionData.start_at * 1000)
+                            ? new Date(subscriptionData.start_at * 100)
                             : null,
                         'subscription.end': subscriptionData.end_at
-                            ? new Date(subscriptionData.end_at * 1000)
+                            ? new Date(subscriptionData.end_at * 100)
                             : null,
                         'subscription.lastBillDate': subscriptionData.current_start
-                            ? new Date(subscriptionData.current_start * 1000)
+                            ? new Date(subscriptionData.current_start * 100)
                             : null,
                         'subscription.nextBillDate': subscriptionData.current_end
-                            ? new Date(subscriptionData.current_end * 1000)
+                            ? new Date(subscriptionData.current_end * 100)
                             : null,
-                        'subscription.paymentsMade': subscriptionData.paid_count,
-                        'subscription.paymentsRemaining': subscriptionData.remaining_count,
+                        'subscription.paymentsMade':subscriptionData.paid_count,
+                        'subscription.paymentsRemaining':subscriptionData.remaining_count,
                     }
                 },
-                { new: true }
+                {new:true}
             );
 
-            if (!user) {
+            if(!user){
                 console.log('UserId is not valid');
                 return response.status(400).send('UserId is not valid');
             }
 
             console.log(`Updated subscription status for user ${userId} to ${newStatus}`);
-            return response.status(200).send('Event processed successfully');
-        } catch (error) {
+            return response.status(200).send(`Event processed successfully`);
+        }catch(error){
             console.log(error);
-            return response.status(500).send('Internal server error');
+            response.status(500).send('Internal Server Error');
         }
     },
 };

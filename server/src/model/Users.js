@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
 const subscriptionSchema = new mongoose.Schema({
-    id: { type: String }, // Razorpay subscription ID
-    planId: { type: String },
-    status: { type: String, default: 'pending' },
-    start: { type: Date },
-    end: { type: Date },
-    lastBillDate: { type: Date },
-    nextBillDate: { type: Date },
-    paymentsMade: { type: Number },
-    paymentsRemaining: { type: Number },
+    id: { type: String},
+    planId: {type: String},
+    status: {type: String, default: 'pending'},
+    start: { type: Date},
+    end: { type: Date},
+    lastBillDate: {type:Date},
+    nextBillDate: {type:Date},
+    paymentModel: {type:Number},
+    paymentsRemaining: {type:Number},
 });
 
 const UsersSchema = new mongoose.Schema({
@@ -21,7 +21,9 @@ const UsersSchema = new mongoose.Schema({
     role: { type: String, default: 'admin' },
     adminId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', index: true },
     credits: { type: Number, default: 0 },
-    subscription: { type: subscriptionSchema, default: () => ({}) }
+    subscription : {type:subscriptionSchema, default:() => ({})},
+    resetPasswordCode: { type: String },
+    resetPasswordCodeExpiry: { type: Date }
 });
 
 module.exports = mongoose.model('users', UsersSchema);
