@@ -45,8 +45,8 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                  httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
             });
 
@@ -55,8 +55,8 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
                httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
             });
             response.json({ user: user, message: 'User authenticated' });
@@ -86,8 +86,8 @@ const authController = {
                         await attemptToRefreshToken(refreshToken);
                     response.cookie('jwtToken', newAccessToken, {
                          httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
                     });
                     console.log('Refresh token renewed the access token');
@@ -136,8 +136,8 @@ const authController = {
 
             response.cookie('jwtToken', token, {
                  httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
             });
             response.json({ message: 'User registered', user: userDetails });
@@ -187,8 +187,8 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                  httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
             });
 
@@ -197,8 +197,8 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: true,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
                 path: '/'
             });
             response.json({ user: user, message: 'User authenticated' });
