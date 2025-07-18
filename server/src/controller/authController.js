@@ -222,63 +222,57 @@ const authController = {
     sendResetPasswordToken: async (req, res) => {
         try {
             const { email } = req.body;
-            if (!email) {
-                return res.status(400).json({ message: 'Email is required.' });
-            }
+            if (!email) return res.status(400).json({ message: 'Email is required' });
             const user = await Users.findOne({ email });
-            if (!user) {
-                return res.status(404).json({ message: 'User not found.' });
-            }
+            if (!user) return res.status(404).json({ message: 'User not found' });
             // Generate 6-digit code
             const code = Math.floor(100000 + Math.random() * 900000).toString();
-            const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+            const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
             user.resetPasswordCode = code;
             user.resetPasswordCodeExpiry = expiry;
             await user.save();
-            // Send email
-            await sendMail({
-                email: user.email,
-                subject: 'Your Password Reset Code',
-                html: `<p>Your password reset code is: <b>${code}</b>. It will expire in 15 minutes.</p>`
-            });
-            return res.json({ message: 'Reset code sent to email.' });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: 'Internal server error.' });
+            // Send code via email
+            await sendMail(email, 'Your Password Reset Code', `Your password reset code is: ${code}`);
+            return res.json({ message: 'Reset code sent to email' });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Internal server error' });
         }
     },
 
+    /**
+     * Resets the user's password if the code is valid and not expired.
+     * Body: { email, code, newPassword }
+     */
     resetPassword: async (req, res) => {
         try {
             const { email, code, newPassword } = req.body;
             if (!email || !code || !newPassword) {
-                return res.status(400).json({ message: 'Email, code, and new password are required.' });
+                return res.status(400).json({ message: 'Email, code, and newPassword are required' });
             }
             const user = await Users.findOne({ email });
-            if (!user) {
-                return res.status(404).json({ message: 'User not found.' });
-            }
+            if (!user) return res.status(404).json({ message: 'User not found' });
             if (!user.resetPasswordCode || !user.resetPasswordCodeExpiry) {
                 return res.status(400).json({ message: 'No reset code found. Please request a new one.' });
             }
             if (user.resetPasswordCode !== code) {
-                return res.status(400).json({ message: 'Invalid reset code.' });
+                return res.status(400).json({ message: 'Invalid reset code' });
             }
             if (user.resetPasswordCodeExpiry < new Date()) {
-                return res.status(400).json({ message: 'Reset code has expired.' });
+                return res.status(400).json({ message: 'Reset code expired' });
             }
             // Hash new password
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            user.password = hashedPassword;
+            const hashed = await bcrypt.hash(newPassword, 10);
+            user.password = hashed;
             user.resetPasswordCode = undefined;
             user.resetPasswordCodeExpiry = undefined;
             await user.save();
-            return res.json({ message: 'Password has been reset successfully.' });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: 'Internal server error.' });
+            return res.json({ message: 'Password reset successful' });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Internal server error' });
         }
-    }
+    },
 };
 
 module.exports = authController;

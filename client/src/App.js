@@ -33,7 +33,7 @@ function App() {
 
   const isUserLoggedIn = async () => {
     try {
-      const response = await axios.post(`/api/auth/is-user-logged-in`, {}, {
+      const response = await axios.post(`/auth/is-user-logged-in`, {}, {
         withCredentials: true
       });
       dispatch({
@@ -77,7 +77,7 @@ function App() {
         <AppLayout>
           <Register />
         </AppLayout>
-      } />
+      } />  
       <Route path="/dashboard" element={userDetails ?
         <UserLayout><Dashboard /></UserLayout> :
         <Navigate to="/login" />} />

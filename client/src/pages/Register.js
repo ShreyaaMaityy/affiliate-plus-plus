@@ -60,7 +60,7 @@ function Register() {
             };
             try {
                 const response = await axios.post(
-                    `${serverEndpoint}/api/auth/register`,
+                    `${serverEndpoint}/auth/register`,
                     body, configuration);
                 dispatch({
                     type: SET_USER,
@@ -79,7 +79,7 @@ function Register() {
 
     const handleGoogleSignin = async (authResponse) => {
         try {
-            const response = await axios.post(`${serverEndpoint}/api/auth/google-auth`, {
+            const response = await axios.post(`${serverEndpoint}/auth/google-auth`, {
                 idToken: authResponse.credential
             }, {
                 withCredentials: true

@@ -31,11 +31,10 @@ const corsOptions = {
     credentials: true
 };
 app.use(cors(corsOptions));
-app.use('/api/auth', authRoutes);
-app.use('/api/password', passwordRoutes);
-app.use('/api/links', linksRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/payments',paymentRoutes);
+app.use('/auth', authRoutes);
+app.use('/links', linksRoutes);
+app.use('/users', userRoutes);
+app.use('/payments',paymentRoutes);
 
 const PORT = 5001;
 app.listen(5001, (error) => {

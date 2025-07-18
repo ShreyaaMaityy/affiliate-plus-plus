@@ -54,7 +54,7 @@ function AnalyticsDashboard() {
 
     const fetchAnalytics = async () => {
         try {
-            const response = await axios.get(`${serverEndpoint}/api/links/analytics`, {
+            const response = await axios.get(`${serverEndpoint}/links/analytics`, {
                 params: {
                     linkId: id,
                     from: fromDate,

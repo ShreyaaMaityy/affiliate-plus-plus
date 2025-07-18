@@ -58,7 +58,7 @@ function Login() {
                 withCredentials: true
             };
             try {
-                const response = await axios.post(`/api/auth/login`, body, config);
+                const response = await axios.post(`${serverEndpoint}/auth/login`, body, config);
                 dispatch({
                     type: SET_USER,
                     payload: response.data.user
@@ -72,10 +72,12 @@ function Login() {
 
     const handleGoogleSuccess = async (authResponse) => {
         try {
-            const response = await axios.post(`/api/auth/google-auth`, { idToken: authResponse.credential }, { withCredentials: true });
+            const response = await axios.post(`${serverEndpoint}/auth/google-auth`, { idToken: authResponse.credential }, { withCredentials: true });
             dispatch({
                 type: SET_USER,
                 payload: response.data.user
+            },{
+                withCredentials:true
             });
         } catch (error) {
             console.log(error);

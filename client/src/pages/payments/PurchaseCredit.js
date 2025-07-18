@@ -18,7 +18,7 @@ function PurchaseCredit() {
     const handleBuyCredits = async (credits) => {
         setShowModal(false);
         try {
-            const { data } = await axios.post(`${serverEndpoint}/api/payments/create-order`, {
+            const { data } = await axios.post(`${serverEndpoint}/payments/create-order`, {
                 credits
             }, { withCredentials: true });
 
@@ -31,7 +31,7 @@ function PurchaseCredit() {
                 order_id: data.order.id,
                 handler: async (response) => {
                     try {
-                        const { data } = await axios.post(`${serverEndpoint}/api/payments/verify-order`, {
+                        const { data } = await axios.post(`${serverEndpoint}/payments/verify-order`, {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
@@ -61,7 +61,7 @@ function PurchaseCredit() {
 
     const handleSubscribe = async (planKey) => {
         try {
-            const { data } = await axios.post(`${serverEndpoint}/api/payments/create-subscription`, {
+            const { data } = await axios.post(`${serverEndpoint}/payments/create-subscription`, {
                 plan_name: planKey
             }, { withCredentials: true });
 
@@ -73,7 +73,7 @@ function PurchaseCredit() {
                 subscription_id: data.subscription.id,
                 handler: async function (response) {
                     try {
-                        const user = await axios.post(`${serverEndpoint}/api/payments/verify-subscription`, {
+                        const user = await axios.post(`${serverEndpoint}/payments/verify-subscription`, {
                             subscription_id: response.razorpay_subscription_id
                         }, { withCredentials: true });
 
