@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 const Users = require('../model/Users');
 const { OAuth2Client } = require('google-auth-library');
 const { validationResult } = require('express-validator');
-const sendMail = require('../util/sendMail');
 
 // https://www.uuidgenerator.net/
 const secret = process.env.JWT_SECRET;
