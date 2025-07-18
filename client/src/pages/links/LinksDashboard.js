@@ -39,7 +39,7 @@ function LinksDashboard() {
 
     const handleDelete = async () => {
         try {
-            await axios.delete(`${serverEndpoint}/links/${formData.id}`, {
+            await axios.delete(`${serverEndpoint}/api/links/${formData.id}`, {
                 withCredentials: true
             });
             await fetchLinks();
@@ -113,11 +113,11 @@ function LinksDashboard() {
             try {
                 if (isEdit) {
                     await axios.put(
-                        `${serverEndpoint}/links/${formData.id}`,
+                        `${serverEndpoint}/api/links/${formData.id}`,
                         body, configuration);
                 } else {
                     await axios.post(
-                        `${serverEndpoint}/links`,
+                        `${serverEndpoint}/api/links`,
                         body, configuration);
                 }
 
@@ -141,7 +141,7 @@ function LinksDashboard() {
 
     const fetchLinks = async () => {
         try {
-            const response = await axios.get(`${serverEndpoint}/links`, {
+            const response = await axios.get(`${serverEndpoint}/api/links`, {
                 withCredentials: true
             });
             setLinksData(response.data.data);
@@ -159,7 +159,7 @@ function LinksDashboard() {
         { field: 'campaignTitle', headerName: 'Campaign', flex: 2 },
         {
             field: 'originalUrl', headerName: 'Short Link', flex: 3, renderCell: (params) => (
-                <a href={`${serverEndpoint}/links/r/${params.row._id}`} target='_blank' rel="noopener noreferrer" className="datagrid-link">
+                <a href={`${serverEndpoint}/api/links/r/${params.row._id}`} target='_blank' rel="noopener noreferrer" className="datagrid-link">
                     {`${serverEndpoint}/r/${params.row.shortCode || params.row._id}`}
                 </a>
             )

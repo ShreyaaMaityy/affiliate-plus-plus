@@ -20,7 +20,7 @@ const ForgetPassword = () => {
         const serverEndpoint = 'http://localhost:5001'; // Example endpoint
 
         try {
-            const response = await fetch(`${serverEndpoint}/api/auth/send-reset-password-token`, {
+            const response = await fetch(`${serverEndpoint}/api/password/send-reset-password-token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email }),

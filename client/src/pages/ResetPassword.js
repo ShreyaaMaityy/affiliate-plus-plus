@@ -30,7 +30,7 @@ function ResetPassword({ email: emailProp = "", hideEmailField = false, onSucces
             return;
         }
         try {
-            await axios.post(`${serverEndpoint}/auth/reset-password`, formData);
+            await axios.post(`${serverEndpoint}/api/password/reset-password`, formData);
             setMessage("Password reset successful.");
             setError("");
             setTimeout(() => {

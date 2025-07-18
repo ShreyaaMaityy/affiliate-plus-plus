@@ -28,7 +28,7 @@ function Subscription() {
 
     const handleCancel = async () => {
         try {
-            const response = await axios.post(`${serverEndpoint}/payments/cancel-subscription`, {
+            const response = await axios.post(`${serverEndpoint}/api/payments/cancel-subscription`, {
                 subscription_id: userDetails.subscription?.id
             }, {
                 withCredentials: true

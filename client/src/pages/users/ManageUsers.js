@@ -59,7 +59,7 @@ function ManageUsers() {
     const handleDeleteSubmit = async () => {
         try {
             setFormLoading(true);
-            await axios.delete(`${serverEndpoint}/users/${formData.id}`, { withCredentials: true });
+            await axios.delete(`${serverEndpoint}/api/users/${formData.id}`, { withCredentials: true });
             await fetchUsers();
             handleDeleteModalClose();
         } catch (error) {
@@ -105,9 +105,9 @@ function ManageUsers() {
             const config = { withCredentials: true };
             try {
                 if (isEdit) {
-                    await axios.put(`${serverEndpoint}/users/${formData.id}`, body, config);
+                    await axios.put(`${serverEndpoint}/api/users/${formData.id}`, body, config);
                 } else {
-                    await axios.post(`${serverEndpoint}/users`, body, config);
+                    await axios.post(`${serverEndpoint}/api/users`, body, config);
                 }
                 await fetchUsers();
                 handleModalClose();
@@ -123,7 +123,7 @@ function ManageUsers() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${serverEndpoint}/users`, { withCredentials: true });
+            const response = await axios.get(`${serverEndpoint}/api/users`, { withCredentials: true });
             setUsersData(response.data);
         } catch (error) {
             setErrors({ message: 'Unable to fetch users at the moment, please try again' });
