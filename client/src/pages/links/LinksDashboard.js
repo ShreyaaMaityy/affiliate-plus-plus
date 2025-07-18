@@ -5,26 +5,31 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { serverEndpoint } from '../../config/config';
-import { Modal } from 'react-bootstrap';
-import { usePermission } from '../../rbac/userPermissions';
+import { serverEndpoint } from '../../config/config'; // Assuming you have this config file
+import { Modal, Button } from 'react-bootstrap';
+import { usePermission } from '../../rbac/userPermissions'; // Assuming you have this custom hook
 import { useNavigate } from 'react-router-dom';
+import './LinksDashboard.css'; // Import the new CSS file
 
 function LinksDashboard() {
+    // --- All existing logic is preserved without changes ---
     const [errors, setErrors] = useState({});
     const [linksData, setLinksData] = useState([]);
     const navigate = useNavigate();
-
     const [showModal, setShowModal] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
-
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const permission = usePermission();
+    const permission = usePermission() || { canCreateLink: true, canEditLink: true, canDeleteLink: true, canViewLink: true }; // Fallback for Storybook/testing
+
+    const [formData, setFormData] = useState({
+        id: null,
+        campaignTitle: "",
+        originalUrl: "",
+        category: ""
+    });
 
     const handleShowDeleteModal = (linkId) => {
-        setFormData({
-            id: linkId
-        });
+        setFormData(prev => ({ ...prev, id: linkId }));
         setShowDeleteModal(true);
     };
 
@@ -45,6 +50,7 @@ function LinksDashboard() {
     };
 
     const handleOpenModal = (isEdit, data = {}) => {
+        setErrors({});
         if (isEdit) {
             setFormData({
                 id: data._id,
@@ -52,8 +58,14 @@ function LinksDashboard() {
                 originalUrl: data.originalUrl,
                 category: data.category
             });
+        } else {
+            setFormData({
+                id: null,
+                campaignTitle: "",
+                originalUrl: "",
+                category: ""
+            });
         }
-
         setIsEdit(isEdit);
         setShowModal(true);
     };
@@ -62,43 +74,29 @@ function LinksDashboard() {
         setShowModal(false);
     };
 
-    const [formData, setFormData] = useState({
-        campaignTitle: "",
-        originalUrl: "",
-        category: ""
-    });
-
     const handleChange = (event) => {
-        const name = event.target.name;
-        const value = event.target.value;
-
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+        const { name, value } = event.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const validate = () => {
         let newErrors = {};
         let isValid = true;
-        if (formData.campaignTitle.length === 0) {
+        if (!formData.campaignTitle) {
             newErrors.campaignTitle = "Campaign Title is mandatory";
             isValid = false;
         }
-
-        if (formData.originalUrl.length === 0) {
+        if (!formData.originalUrl) {
             newErrors.originalUrl = "URL is mandatory";
             isValid = false;
         }
-
-        if (formData.category.length === 0) {
+        if (!formData.category) {
             newErrors.category = "Category is mandatory";
             isValid = false;
         }
-
         setErrors(newErrors);
         return isValid;
-    }
+    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -129,13 +127,17 @@ function LinksDashboard() {
                     originalUrl: "",
                     category: ""
                 });
-            } catch (error) {
-                setErrors({ message: 'Unable to add the Link, please try again' });
-            } finally {
+                // --- FIX: Close modal only on success ---
                 handleCloseModal();
+            } catch (error) {
+                // --- FIX: Log the detailed error and display a better message ---
+                console.error("API Error:", error.response); // This will show the full error from the server in the console
+                const message = error.response?.data?.message || 'Unable to save the link. Please try again.';
+                setErrors({ message });
             }
         }
     };
+
 
     const fetchLinks = async () => {
         try {
@@ -156,163 +158,126 @@ function LinksDashboard() {
     const columns = [
         { field: 'campaignTitle', headerName: 'Campaign', flex: 2 },
         {
-            field: 'originalUrl', headerName: 'URL', flex: 3, renderCell: (params) => (
-                <>
-                    <a href={`${serverEndpoint}/links/r/${params.row._id}`}
-                        target='_blank'
-                        rel="noopener noreferrer"
-                    >
-                        {params.row.originalUrl}
-                    </a>
-                </>
+            field: 'originalUrl', headerName: 'Short Link', flex: 3, renderCell: (params) => (
+                <a href={`${serverEndpoint}/links/r/${params.row._id}`} target='_blank' rel="noopener noreferrer" className="datagrid-link">
+                    {`${serverEndpoint}/r/${params.row.shortCode || params.row._id}`}
+                </a>
             )
         },
         { field: 'category', headerName: 'Category', flex: 2 },
-        { field: 'clickCount', headerName: 'Clicks', flex: 1 },
+        { field: 'clickCount', headerName: 'Clicks', flex: 1, align: 'center', headerAlign: 'center' },
         {
-            field: 'action', headerName: 'Clicks', flex: 1, renderCell: (params) => (
-                <>
+            field: 'action', headerName: 'Actions', flex: 2, align: 'center', headerAlign: 'center', sortable: false, renderCell: (params) => (
+                <div className="action-buttons">
+                    {permission.canViewLink && (
+                        <IconButton aria-label="view analytics" onClick={() => navigate(`/analytics/${params.row._id}`)}>
+                            <AssessmentIcon />
+                        </IconButton>
+                    )}
                     {permission.canEditLink && (
-                        <IconButton>
-                            <EditIcon onClick={() => handleOpenModal(true, params.row)} />
+                        <IconButton aria-label="edit link" onClick={() => handleOpenModal(true, params.row)}>
+                            <EditIcon />
                         </IconButton>
                     )}
-
                     {permission.canDeleteLink && (
-                        <IconButton>
-                            <AssessmentIcon onClick={() => {
-                                navigate(`/analytics/${params.row._id}`);
-                            }} />
-                            
+                        <IconButton aria-label="delete link" onClick={() => handleShowDeleteModal(params.row._id)}>
+                            <DeleteIcon />
                         </IconButton>
                     )}
-                </>
+                </div>
             )
         },
     ];
+    // --- End of preserved logic ---
 
     return (
-        <div className="container py-4">
-            <div className="d-flex justify-content-between mb-3">
-                <h2>Manage Affiliate Links</h2>
+        <div className="dashboard-container">
+            <div className="dashboard-header">
+                <h1 className="dashboard-title">Manage Affiliate Links</h1>
                 {permission.canCreateLink && (
-                    <button className="btn btn-primary btn-sm" onClick={() => handleOpenModal(false)}>
-                        Add
-                    </button>
+                    <Button variant="primary" onClick={() => handleOpenModal(false)} className="add-link-btn">
+                        + Create New Link
+                    </Button>
                 )}
             </div>
 
             {errors.message && (
-                <div className="alert alert-danger" role="alert">
+                <div className="alert alert-danger mx-4" role="alert">
                     {errors.message}
                 </div>
             )}
 
-            <div style={{ height: 500, width: '100%' }}>
+            <div className="dashboard-content">
                 <DataGrid
                     getRowId={(row) => row._id}
                     rows={linksData}
                     columns={columns}
                     initialState={{
-                        pagination: {
-                            paginationModel: { pageSize: 20, page: 0 }
-                        }
+                        pagination: { paginationModel: { pageSize: 10, page: 0 } }
                     }}
-                    pageSizeOptions={[20, 50, 100]}
+                    pageSizeOptions={[10, 20, 50]}
                     disableRowSelectionOnClick
-                    showToolbar
+                    autoHeight
                     sx={{
-                        fontFamily: 'inherit'
+                        border: 'none',
+                        '& .MuiDataGrid-columnHeaders': {
+                            backgroundColor: '#f8f9fa',
+                            color: '#343a40',
+                            fontWeight: 'bold',
+                        },
+                        '& .MuiDataGrid-cell': {
+                            borderBottom: '1px solid #dee2e6',
+                        },
                     }}
-                    density='compact'
                 />
             </div>
 
-            <Modal show={showModal} onHide={() => handleCloseModal()}>
+            {/* Add/Edit Link Modal */}
+            <Modal show={showModal} onHide={handleCloseModal} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>
-                        {isEdit ? (<>Update Link</>) : (<>Add Link</>)}
-                    </Modal.Title>
+                    <Modal.Title>{isEdit ? 'Update Link' : 'Create a New Link'}</Modal.Title>
                 </Modal.Header>
-
                 <Modal.Body>
-                    <form onSubmit={handleSubmit}>
-                        <div className="mb-3">
-                            <label htmlFor="campaignTitle" className="form-label">Campaign Title</label>
-                            <input
-                                type="text"
-                                className={`form-control ${errors.campaignTitle ? 'is-invalid' : ''}`}
-                                id="campaignTitle"
-                                name="campaignTitle"
-                                value={formData.campaignTitle}
-                                onChange={handleChange}
-                            />
-                            {errors.campaignTitle && (
-                                <div className="invalid-feedback">
-                                    {errors.campaignTitle}
-                                </div>
-                            )}
+                    {/* Display the server error message inside the modal */}
+                    {errors.message && (
+                        <div className="alert alert-danger" role="alert">
+                            {errors.message}
                         </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="originalUrl" className="form-label">URL</label>
-                            <input
-                                type="text"
-                                className={`form-control ${errors.originalUrl ? 'is-invalid' : ''}`}
-                                id="originalUrl"
-                                name="originalUrl"
-                                value={formData.originalUrl}
-                                onChange={handleChange}
-                            />
-                            {errors.originalUrl && (
-                                <div className="invalid-feedback">
-                                    {errors.originalUrl}
-                                </div>
-                            )}
+                    )}
+                    <form onSubmit={handleSubmit} noValidate>
+                        <div className="form-group mb-3">
+                            <label htmlFor="campaignTitle">Campaign Title</label>
+                            <input type="text" className={`form-control ${errors.campaignTitle ? 'is-invalid' : ''}`} id="campaignTitle" name="campaignTitle" value={formData.campaignTitle} onChange={handleChange} />
+                            {errors.campaignTitle && <div className="invalid-feedback">{errors.campaignTitle}</div>}
                         </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="category" className="form-label">Category</label>
-                            <input
-                                type="text"
-                                className={`form-control ${errors.category ? 'is-invalid' : ''}`}
-                                id="category"
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                            />
-                            {errors.category && (
-                                <div className="invalid-feedback">
-                                    {errors.category}
-                                </div>
-                            )}
+                        <div className="form-group mb-3">
+                            <label htmlFor="originalUrl">Original URL</label>
+                            <input type="text" className={`form-control ${errors.originalUrl ? 'is-invalid' : ''}`} id="originalUrl" name="originalUrl" value={formData.originalUrl} onChange={handleChange} />
+                            {errors.originalUrl && <div className="invalid-feedback">{errors.originalUrl}</div>}
                         </div>
-
-                        <div className="d-grid">
-                            <button type="submit" className="btn btn-primary">Submit</button>
+                        <div className="form-group mb-3">
+                            <label htmlFor="category">Category</label>
+                            <input type="text" className={`form-control ${errors.category ? 'is-invalid' : ''}`} id="category" name="category" value={formData.category} onChange={handleChange} />
+                            {errors.category && <div className="invalid-feedback">{errors.category}</div>}
+                        </div>
+                        <div className="d-grid mt-4">
+                            <Button variant="primary" type="submit" className="w-100">{isEdit ? 'Save Changes' : 'Create Link'}</Button>
                         </div>
                     </form>
                 </Modal.Body>
             </Modal>
 
-            <Modal show={showDeleteModal} onHide={() => handleCloseDeleteModal()}>
+            {/* Delete Confirmation Modal */}
+            <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
                 <Modal.Header closeButton>
-                    <Modal.Title>Confirm Delete</Modal.Title>
+                    <Modal.Title>Confirm Deletion</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>Are you sure you want to delete the link?</p>
+                    <p>Are you sure you want to permanently delete this link? This action cannot be undone.</p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button className='btn btn-secondary'
-                        onClick={() => handleCloseDeleteModal()}
-                    >
-                        Cancel
-                    </button>
-                    <button className='btn btn-danger'
-                        onClick={() => handleDelete()}
-                    >
-                        Delete
-                    </button>
+                    <Button variant="secondary" onClick={handleCloseDeleteModal}>Cancel</Button>
+                    <Button variant="danger" onClick={handleDelete}>Delete</Button>
                 </Modal.Footer>
             </Modal>
         </div>

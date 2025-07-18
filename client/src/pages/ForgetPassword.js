@@ -7,17 +7,20 @@ function ForgetPassword() {
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState("");
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setSuccess("");
         setLoading(true);
         try {
             await axios.post(`${serverEndpoint}/auth/send-reset-password-token`, { email });
-            navigate("/reset-password", { state: { email } });
+            setSuccess("If the email exists, a reset code has been sent.");
+            setTimeout(() => navigate("/reset-password", { state: { email } }), 1500);
         } catch (err) {
-            setError(err?.response?.data?.message || "Failed to send reset code");
+            setSuccess("If the email exists, a reset code has been sent.");
         } finally {
             setLoading(false);
         }
@@ -29,6 +32,7 @@ function ForgetPassword() {
                 <div className="col-md-4">
                     <h2 className="text-center mb-4">Forgot Password</h2>
                     {error && <div className="alert alert-danger">{error}</div>}
+                    {success && <div className="alert alert-success">{success}</div>}
                     <form onSubmit={handleSubmit}>
                         <div className="mb-3">
                             <label htmlFor="email" className="form-label">Email</label>

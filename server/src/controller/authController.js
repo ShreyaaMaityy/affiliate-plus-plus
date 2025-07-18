@@ -3,8 +3,7 @@ const bcrypt = require('bcryptjs');
 const Users = require('../model/Users');
 const { OAuth2Client } = require('google-auth-library');
 const { validationResult } = require('express-validator');
-const { attemptToRefreshToken } = require('../util/authUtil');
-const sendMail = require('../service/emailService');
+const send = require('../service/emailService');
 
 // https://www.uuidgenerator.net/
 const secret = process.env.JWT_SECRET;
@@ -46,17 +45,19 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: true,
+                domain: 'localhost',
+                path: '/'
             });
 
-            const refreshToken = jwt.sign(user, refreshSecret, {expiresIn: '7d'});
+            const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
+            // store it in the detabase if you want! stroing in DB will
+            // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
-              httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                httpOnly: true,
+                secure: true,
+                domain: 'localhost',
+                path: '/'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
@@ -79,19 +80,20 @@ const authController = {
 
         jwt.verify(token, secret, async (error, user) => {
             if (error) {
-              const refreshToken = request.cookies?.refreshToken;
-              if (refreshToken){
-                const {newAccessToken, user} =
-                  await attemptToRefreshToken(refreshToken);
-                response.cookie('jwtToken', newAccessToken, {
-                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
-                });
-                console.log('Refresh token renewed the access token');
-                return response.json({ message: 'User is logged in', user: user});
-              }
+                const refreshToken = request.cookies?.refreshToken;
+                if(refreshToken){
+                    const {newAccessToken, user} = 
+                        await attemptToRefreshToken(refreshToken);
+                    response.cookie('jwtToken', newAccessToken, {
+                        httpOnly: true,
+                        secure: true,
+                        domain: 'localhost',
+                        path: '/'
+                    });
+                    console.log('Refresh token renewed the access token');
+                    return response.json({message: 'User is logged in', user: user});
+                }
+
                 return response.status(401).json({ message: 'Unauthorized access' });
             } else {
                 const latestUserDetails = await Users.findById({ _id: user.id });
@@ -134,9 +136,9 @@ const authController = {
 
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: true,
+                domain: 'localhost',
+                path: '/'
             });
             response.json({ message: 'User registered', user: userDetails });
         } catch (error) {
@@ -180,21 +182,24 @@ const authController = {
                 role: data.role ? data.role : 'admin', // This is the ensure backward compatibility
                 credits: data.credits
             };
-            //Making 1 minute only for testing, revert it back to 1h
+
+            // making 1 minute only for testing, revert it back to 1h
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: true,
+                domain: 'localhost',
+                path: '/'
             });
 
-            const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d'});
+            const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
+            // store it in the detabase if you want! stroing in DB will
+            // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
-              httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                httpOnly: true,
+                secure: true,
+                domain: 'localhost',
+                path: '/'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
@@ -203,25 +208,36 @@ const authController = {
         }
     },
 
-    /**
-     * Sends a 6-digit reset code to the user's email if the user exists.
-     * Body: { email }
-     */
-    sendResetPasswordToken: async (req, res) => {
+    refreshToken: async (request, response) => {
+      
+    },
+
+
+     sendResetPasswordToken: async (req, res) => {
         try {
             const { email } = req.body;
             if (!email) return res.status(400).json({ message: 'Email is required' });
             const user = await Users.findOne({ email });
-            if (!user) return res.status(404).json({ message: 'User not found' });
-            // Generate 6-digit code
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
-            const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-            user.resetPasswordCode = code;
-            user.resetPasswordCodeExpiry = expiry;
-            await user.save();
-            // Send code via email
-            await sendMail(email, 'Your Password Reset Code', `Your password reset code is: ${code}`);
-            return res.json({ message: 'Reset code sent to email' });
+            if (user) {
+                // Generate 6-digit code
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+                user.resetPasswordCode = code;
+                user.resetPasswordCodeExpiry = expiry;
+                try {
+                    await user.save();
+                    console.log('Reset code and expiry saved for user:', email, code, expiry);
+                } catch (saveErr) {
+                    console.error('Error saving user with reset code:', saveErr);
+                }
+                try {
+                    await send(email, 'Your Password Reset Code', `Your password reset code is: ${code}`);
+                } catch (emailErr) {
+                    console.error('Error sending reset code email:', emailErr);
+                }
+            }
+            // Always return a generic message
+            return res.json({ message: 'If the email exists, a reset code has been sent.' });
         } catch (err) {
             console.error(err);
             return res.status(500).json({ message: 'Internal server error' });
@@ -235,29 +251,46 @@ const authController = {
     resetPassword: async (req, res) => {
         try {
             const { email, code, newPassword } = req.body;
+            console.log('RESET PASSWORD ATTEMPT:', { email, code, newPassword });
             if (!email || !code || !newPassword) {
+                console.log('Missing required fields');
                 return res.status(400).json({ message: 'Email, code, and newPassword are required' });
             }
-            const user = await Users.findOne({ email });
-            if (!user) return res.status(404).json({ message: 'User not found' });
+            let user = await Users.findOne({ email });
+            console.log('USER FOUND:', user);
+            if (!user) {
+                console.log('User not found');
+                return res.status(404).json({ message: 'User not found' });
+            }
+            // Ensure we have a plain object with all fields
+            if (typeof user.toObject === 'function') {
+                user = user.toObject();
+            }
+            console.log('User keys:', Object.keys(user));
+            console.log('User.resetPasswordCode:', user.resetPasswordCode);
+            console.log('User.resetPasswordCodeExpiry:', user.resetPasswordCodeExpiry);
             if (!user.resetPasswordCode || !user.resetPasswordCodeExpiry) {
+                console.log('No reset code found on user');
                 return res.status(400).json({ message: 'No reset code found. Please request a new one.' });
             }
             if (user.resetPasswordCode !== code) {
+                console.log('Reset code does not match');
                 return res.status(400).json({ message: 'Invalid reset code' });
             }
             if (user.resetPasswordCodeExpiry < new Date()) {
+                console.log('Reset code expired');
                 return res.status(400).json({ message: 'Reset code expired' });
             }
             // Hash new password
             const hashed = await bcrypt.hash(newPassword, 10);
-            user.password = hashed;
-            user.resetPasswordCode = undefined;
-            user.resetPasswordCodeExpiry = undefined;
-            await user.save();
+            await Users.updateOne({ email }, {
+                $set: { password: hashed },
+                $unset: { resetPasswordCode: '', resetPasswordCodeExpiry: '' }
+            });
+            console.log('Password reset successful');
             return res.json({ message: 'Password reset successful' });
         } catch (err) {
-            console.error(err);
+            console.error('RESET PASSWORD ERROR:', err);
             return res.status(500).json({ message: 'Internal server error' });
         }
     },

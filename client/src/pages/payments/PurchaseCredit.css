@@ -1,126 +1,149 @@
-/* Root Theme Variables for .ezy__pricing10 */
-.ezy__pricing10 {
-  --bs-body-color: rgb(50, 62, 80);
-  --bs-body-bg: #ffffff;
+/* PurchaseCredit.css */
 
-  /* Easy Frontend variables */
-  --ezy-theme-color: rgb(13, 110, 253);
-  --ezy-theme-color-rgb: 13, 110, 253;
-  --ezy-card-bg: #f6f6f6;
-  --ezy-card-box-shadow: 0 7px 65px 0 rgb(0 0 0 / 12%);
-  --ezy-btn-color: #ffffff;
-  --ezy-btn-bg: #00bfa5;
-
-  background-color: var(--bs-body-bg);
+.pricing-container {
+    background-color: #f8f9fa;
+    font-family: 'Inter', sans-serif;
 }
 
-/* Gray Block Style */
-.gray .ezy__pricing10,
-.ezy__pricing10.gray {
-  --bs-body-bg: rgb(246, 246, 246);
-  --ezy-card-bg: #fff;
-  --ezy-card-box-shadow: 0 7px 65px 0 rgb(0 0 0 / 12%);
+.pricing-header {
+    margin-bottom: 4rem;
 }
 
-/* Dark Gray Block Style */
-.dark-gray .ezy__pricing10,
-.ezy__pricing10.dark-gray {
-  --bs-body-color: #ffffff;
-  --bs-body-bg: rgb(30, 39, 53);
-  --ezy-card-bg: #263547;
-  --ezy-card-box-shadow: 0 21px 65px 0 rgba(75, 75, 75, 0.25);
+.pricing-header .display-4 {
+    font-weight: 800;
+    color: #212529;
 }
 
-/* Dark Block Style */
-.dark .ezy__pricing10,
-.ezy__pricing10.dark {
-  --bs-body-color: #ffffff;
-  --bs-body-bg: rgb(11, 23, 39);
-  --ezy-card-bg: #162231;
-  --ezy-card-box-shadow: 0 21px 65px 0 rgba(55, 55, 55, 0.25);
+.current-balance-container {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #e9ecef;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    color: #495057;
 }
 
-/* Headings */
-.ezy__pricing10-heading {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--bs-body-color);
+.pricing-card {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid #dee2e6;
 }
 
-@media (min-width: 768px) {
-  .ezy__pricing10-heading {
-    font-size: 45px;
-  }
+.pricing-card:hover {
+    transform: translateY(-10px);
 }
 
-.ezy__pricing10-sub-heading {
-  font-size: 18px;
-  color: var(--bs-body-color);
-  line-height: 1.5;
-  opacity: 0.8;
+.pricing-card.popular {
+    border: 2px solid #667eea;
 }
 
-/* Section Padding */
-.ezy__pricing10-separator {
-  padding: 100px 0;
+.popular-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
-/* Card Styling */
-.ezy__pricing10-card {
-  transition: 0.4s;
-  background-color: var(--ezy-card-bg);
+.pricing-card .card-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.ezy__pricing10-card:hover {
-  background-color: var(--bs-body-bg);
-  box-shadow: var(--ezy-card-box-shadow);
-  transform: translateX(0) translateY(-5px) translateZ(0) rotate(0deg) scale(1);
+.pricing-card h3 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
 
-/* Icons */
-.ezy__pricing10-card-icon {
-  font-size: 40px;
-  color: var(--bs-body-color);
+.pricing-card .price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #212529;
 }
 
-/* Pricing Text */
-.ezy__pricing10-meta-price {
-  color: var(--bs-body-color);
-  line-height: 60px;
+.pricing-card .price .period {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #6c757d;
 }
 
-.ezy__pricing10-period,
-.ezy__pricing10-currency {
-  font-size: 22px;
+.pricing-card .card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 0;
 }
 
-.ezy__pricing10-currency {
-  position: relative;
-  top: -35px;
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    text-align: left;
+    flex-grow: 1;
 }
 
-.ezy__pricing10-rate {
-  font-size: 45px;
-  font-weight: 100;
+.feature-list li {
+    margin-bottom: 1rem;
+    color: #495057;
 }
 
-/* List Items */
-.ezy__pricing10-nav li {
-  color: var(--bs-body-color);
-  font-size: 18px;
-  opacity: 0.8;
+.pricing-card .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    border-width: 2px;
 }
 
-/* Buttons */
-.ezy__pricing10-btn {
-  background-color: var(--ezy-theme-color);
-  color: #fff;
-  padding: 12px 30px;
-  transition: 0.5s all;
+.pricing-card .btn-primary {
+    background-color: #667eea;
+    border-color: #667eea;
 }
 
-.ezy__pricing10-btn:hover {
-  color: #fff;
-  background-color: rgba(var(--ezy-theme-color-rgb), 0.9);
+.pricing-card .btn-primary:hover {
+    background-color: #5a6fd8;
+    border-color: #5a6fd8;
+}
+
+/* Modal Styling */
+.credit-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.credit-pack-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+.credit-pack-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.credit-price {
+    font-weight: 700;
 }
