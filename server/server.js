@@ -30,7 +30,7 @@ const corsOptions = {
     credentials: true
 };
 app.use(cors(corsOptions));
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/links', linksRoutes);
 app.use('/users', userRoutes);
 

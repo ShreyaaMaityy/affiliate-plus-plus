@@ -19,6 +19,12 @@ import ProtectedRoute from "./rbac/ProtectedRoute";
 import ManagePayments from "./pages/payments/ManagePayments";
 import AnalyticsDashboard from "./pages/links/AnalyticsDashboard";
 
+
+
+import ForgetPassword from './pages/ForgetPassword';
+import ResetPassword from './pages/ResetPassword';
+
+
 function App() {
   // const [userDetails, setUserDetails] = useState(null);
   const dispatch = useDispatch();
@@ -27,7 +33,7 @@ function App() {
 
   const isUserLoggedIn = async () => {
     try {
-      const response = await axios.post(`${serverEndpoint}/auth/is-user-logged-in`, {}, {
+      const response = await axios.post(`/api/auth/is-user-logged-in`, {}, {
         withCredentials: true
       });
       dispatch({
@@ -105,6 +111,14 @@ function App() {
         </UserLayout> :
         <Navigate to="/login" />
       } />
+      <Route path="/forget-password" element={<AppLayout><ForgetPassword /></AppLayout>} />
+      <Route path="/reset-password" element={
+        userDetails ?
+          <UserLayout><ResetPassword email={userDetails.email} hideEmailField={true} /></UserLayout> :
+          <AppLayout><ResetPassword /></AppLayout>
+      } />
+
+
     </Routes>
   );
 }

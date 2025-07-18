@@ -6,6 +6,9 @@ import { useDispatch } from "react-redux";
 import { SET_USER } from "../redux/user/actions"; // Assuming you have this redux action
 import './Login.css'; // Import the new CSS file
 
+
+import { Link } from 'react-router-dom';
+
 function Login() {
     const dispatch = useDispatch();
     const [formData, setFormData] = useState({
@@ -55,7 +58,7 @@ function Login() {
                 withCredentials: true
             };
             try {
-                const response = await axios.post(`${serverEndpoint}/auth/login`, body, config);
+                const response = await axios.post(`/api/auth/login`, body, config);
                 dispatch({
                     type: SET_USER,
                     payload: response.data.user
@@ -69,11 +72,7 @@ function Login() {
 
     const handleGoogleSuccess = async (authResponse) => {
         try {
-            const response = await axios.post(`${serverEndpoint}/auth/google-auth`, {
-                idToken: authResponse.credential
-            }, {
-                withCredentials: true
-            });
+            const response = await axios.post(`/api/auth/google-auth`, { idToken: authResponse.credential }, { withCredentials: true });
             dispatch({
                 type: SET_USER,
                 payload: response.data.user
@@ -150,6 +149,8 @@ function Login() {
                                     )}
                                 </div>
 
+                                
+
                                 <div className="d-grid mb-3">
                                     <button type="submit" className="btn btn-primary btn-block">Sign In</button>
                                 </div>
@@ -173,6 +174,9 @@ function Login() {
                                     </GoogleOAuthProvider>
                                 </div>
                             </form>
+                            <div className="text-center mt-3">
+                                <Link to="/forget-password">Forgot Password?</Link>
+                            </div>
                             
                             <div className="text-center mt-4">
                                 <p className="text-muted">Don't have an account? <a href="./register">Sign Up</a></p>

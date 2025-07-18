@@ -11,7 +11,7 @@ function Logout() {
 
     const handleLogout = async () => {
         try {
-            await axios.post(`${serverEndpoint}/auth/logout`, {}, {
+            await axios.post(`/api/auth/logout`, {}, {
                 withCredentials: true
             });
             dispatch({
