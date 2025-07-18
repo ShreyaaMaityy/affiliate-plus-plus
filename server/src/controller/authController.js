@@ -46,7 +46,7 @@ const authController = {
             response.cookie('jwtToken', token, {
                  httpOnly: true,
                 secure: true,
-                sameSite: 'None',
+                sameSite: 'lax',
                 path: '/'
             });
 
@@ -56,7 +56,7 @@ const authController = {
             response.cookie('refreshToken', refreshToken, {
                httpOnly: true,
                 secure: true,
-                sameSite: 'None',
+                sameSite: 'lax',
                 path: '/'
             });
             response.json({ user: user, message: 'User authenticated' });
@@ -87,7 +87,7 @@ const authController = {
                     response.cookie('jwtToken', newAccessToken, {
                          httpOnly: true,
                 secure: true,
-                sameSite: 'None',
+                sameSite: 'lax',
                 path: '/'
                     });
                     console.log('Refresh token renewed the access token');
@@ -137,7 +137,7 @@ const authController = {
             response.cookie('jwtToken', token, {
                  httpOnly: true,
                 secure: true,
-                sameSite: 'None',
+                sameSite: 'lax',
                 path: '/'
             });
             response.json({ message: 'User registered', user: userDetails });
@@ -188,7 +188,7 @@ const authController = {
             response.cookie('jwtToken', token, {
                  httpOnly: true,
                 secure: true,
-                sameSite: 'None',
+                sameSite: 'lax',
                 path: '/'
             });
 
@@ -198,7 +198,7 @@ const authController = {
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
-                sameSite: 'None',
+                sameSite: 'lax',
                 path: '/'
             });
             response.json({ user: user, message: 'User authenticated' });
