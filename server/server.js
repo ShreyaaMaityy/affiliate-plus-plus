@@ -25,9 +25,21 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://magical-mousse-326f31.netlify.app'
+];
 const corsOptions = {
-    origin: process.env.CLIENT_ENDPOINT,
-    credentials: true
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 };
 app.use(cors(corsOptions));
 app.use('/auth', authRoutes);
