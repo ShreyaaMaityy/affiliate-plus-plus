@@ -8,6 +8,9 @@ const { validationResult } = require('express-validator');
 const secret = process.env.JWT_SECRET;
 const refreshSecret = process.env.JWT_REFRESH_TOKEN_SECRET;
 
+// Helper to determine if running in production or on a remote host
+const isRemote = process.env.NODE_ENV === 'production' || process.env.REMOTE === 'true' || (process.env.CLIENT_ENDPOINT && !process.env.CLIENT_ENDPOINT.includes('localhost'));
+
 const authController = {
     login: async (request, response) => {
         try {
@@ -44,9 +47,9 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: isRemote,
+                path: '/',
+                sameSite: isRemote ? 'None' : 'Lax'
             });
 
             const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
@@ -54,9 +57,9 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
               httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: isRemote,
+                path: '/',
+                sameSite: isRemote ? 'None' : 'Lax'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
@@ -85,9 +88,9 @@ const authController = {
                         await attemptToRefreshToken(refreshToken);
                     response.cookie('jwtToken', newAccessToken, {
                         httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
+                        secure: isRemote,
                         path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                        sameSite: isRemote ? 'None' : 'Lax'
                     });
                     console.log('Refresh token renewed the access token');
                     return response.json({message: 'User is logged in', user: user});
@@ -135,9 +138,9 @@ const authController = {
 
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: isRemote,
+                path: '/',
+                sameSite: isRemote ? 'None' : 'Lax'
             });
             response.json({ message: 'User registered', user: userDetails });
         } catch (error) {
@@ -186,9 +189,9 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
           httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: isRemote,
+                path: '/',
+                sameSite: isRemote ? 'None' : 'Lax'
             });
 
             const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
@@ -196,9 +199,9 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
-                        path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: isRemote,
+                path: '/',
+                sameSite: isRemote ? 'None' : 'Lax'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {

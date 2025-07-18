@@ -19,11 +19,12 @@ const authMiddleware = {
                 if(refreshToken){
                     const {newAccessToken, user} = 
                         await attemptToRefreshToken(refreshToken);
+                    const isRemote = process.env.NODE_ENV === 'production' || process.env.REMOTE === 'true' || (process.env.CLIENT_ENDPOINT && !process.env.CLIENT_ENDPOINT.includes('localhost'));
                     response.cookie('jwtToken', newAccessToken, {
                         httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
+                        secure: isRemote,
                         path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                        sameSite: isRemote ? 'None' : 'Lax'
                     });
                     request.user = user;
                     next();
