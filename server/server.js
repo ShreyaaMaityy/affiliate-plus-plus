@@ -6,7 +6,6 @@ const authRoutes = require('./src/routes/authRoutes');
 const linksRoutes = require('./src/routes/linksRoutes');
 const userRoutes = require('./src/routes/userRoutes');
 const paymentRoutes=require('./src/routes/paymentRoutes');
-const passwordRoutes = require('./src/routes/passwordRoutes');
 const cors = require('cors');
 
 mongoose.connect(process.env.MONGO_URI)
