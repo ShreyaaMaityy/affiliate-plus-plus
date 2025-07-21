@@ -21,9 +21,9 @@ const authMiddleware = {
                         await attemptToRefreshToken(refreshToken);
                     response.cookie('jwtToken', newAccessToken, {
                         httpOnly: true,
-                        secure: true,
-                        sameSite: 'None',
-                        path: '/'
+               secure: process.env.NODE_ENV === 'production',
+               path: '/',
+               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
                     });
                     request.user = user;
                     next();
