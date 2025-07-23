@@ -3,16 +3,14 @@ const Users = require("../model/Users");
 const axios = require('axios');
 const { getDeviceInfo } = require("../util/linkUtil");
 const Clicks = require("../model/Clicks");
+const { generateUploadSignature } = require("../service/cloudinaryService");
 
 const linksController = {
     create: async (request, response) => {
-        const { campaign_title, original_url, category } = request.body;
+        
+        const { campaign_title, original_url, category,  thumbnail  } = request.body;
 
         try {
-            // We're fetching user details from DB even though we have
-            // it available in request object. The reason is critical operation.
-            // We're dealing with money and we want to pull latest information
-            // whenever we're transacting.
             const user = await Users.findById({ _id: request.user.id });
 
             const hasActiveSubscription = user.subscription &&
@@ -28,6 +26,7 @@ const linksController = {
                 campaignTitle: campaign_title,
                 originalUrl: original_url,
                 category: category,
+                thumbnail: thumbnail,
                 user: request.user.role === 'admin' ?
                     request.user.id : request.user.adminId
             });
@@ -51,12 +50,36 @@ const linksController = {
 
     getAll: async (request, response) => {
         try {
+            const {
+                currentPage = 0, pageSize = 10,
+                searchQuery = '',
+                sortfield = 'createdAt', sortOrder = 'desc'
+            } = request.query;
+
             const userId = request.user.role === 'admin' ?
                 request.user.id : request.user.adminId;
+
+            const skip = parseInt(currentPage) * parseInt(pageSize);
+            const limit = parseInt(pageSize);
+            const sort = { [sortfield]: sortOrder === 'desc' ? -1 : 1 };
+
+            const query = {
+                user: userId
+            };
+
+            if (searchQuery) {
+                query.$or = [
+                    { campaignTitle: new RegExp(searchQuery, 'i') },
+                    { originalUrl: new RegExp(searchQuery, 'i') },
+                    { category: new RegExp(searchQuery, 'i') },
+                ];
+            }
+
             const links = await Links
-                .find({ user: userId })
-                .sort({ createdAt: -1 });
-            response.json({ data: links });
+                .find(query)
+                .sort(sort).skip(skip).limit(limit);
+            const total = await Links.countDocuments(query);
+            response.json({ links, total });
         } catch (error) {
             console.log(error);
             response.status(500).json({
@@ -81,7 +104,6 @@ const linksController = {
 
             const userId = request.user.role === 'admin' ?
                 request.user.id : request.user.adminId;
-            // Make sure the link indeed belong to the logged in user.
             if (link.user.toString() !== userId) {
                 return response.status(403).json({
                     error: 'Unauthorized access'
@@ -113,21 +135,22 @@ const linksController = {
 
             const userId = request.user.role === 'admin' ?
                 request.user.id : request.user.adminId;
-            // Make sure the link indeed belong to the logged in user.
             if (link.user.toString() !== userId) {
                 return response.status(403).json({
                     error: 'Unauthorized access'
                 });
             }
 
-            const { campaign_title, original_url, category } = request.body;
+
+            const { campaign_title, original_url, category, thumbnail } = request.body;
             link = await Links.findByIdAndUpdate(linkId, {
                 campaignTitle: campaign_title,
                 originalUrl: original_url,
-                category: category
-            }, { new: true }); // new: true flag makes sure mongodb returns updated data after the update operation
+                category: category,
+                 thumbnail: thumbnail,
+            }, { new: true });
+             // new: true flag makes sure mongodb returns updated data after the update operation
 
-            // Return updated link data
             response.json({ data: link });
         } catch (error) {
             console.log(error);
@@ -153,7 +176,6 @@ const linksController = {
 
             const userId = request.user.role === 'admin' ?
                 request.user.id : request.user.adminId;
-            // Make sure the link indeed belong to the logged in user.
             if (link.user.toString() !== userId) {
                 return response.status(403).json({
                     error: 'Unauthorized access'
@@ -191,7 +213,7 @@ const linksController = {
                 || request.socket.remoteAddress;
 
             const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
-            const { city, country, region, lat, lon, isp  } = geoResponse.data;
+            const { city, country, region, lat, lon, isp } = geoResponse.data;
 
             const userAgent = request.headers['user-agent'] || 'unknown';
             const { isMobile, browser } = getDeviceInfo(userAgent);
@@ -240,7 +262,7 @@ const linksController = {
 
             const userId = request.user.role === 'admin'
                 ? request.user.id
-                : request.user.adminId
+                : request.user.adminId;
             if (link.user.toString() !== userId) {
                 return response.status(403).json({
                     error: 'Unauthorized'
@@ -264,6 +286,20 @@ const linksController = {
             });
         }
     },
+
+    createUploadSignature: async (request, response) => {
+        try {
+            const { signature, timestamp } = generateUploadSignature();
+            response.json({
+                signature: signature,
+                timestamp: timestamp,
+                apikey: process.env.CLOUDINARY_API_KEY,
+                cloudName: process.env.CLOUDINARY_NAME
+            });
+        } catch (error) {
+            response.status(500).json({ message: 'Internal server error' });
+        }
+    }
 };
 
 module.exports = linksController;

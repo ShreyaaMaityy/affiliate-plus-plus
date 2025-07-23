@@ -44,20 +44,20 @@ const authController = {
 
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
-               httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
 
             const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
             // store it in the detabase if you want! stroing in DB will
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
-               httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
@@ -67,7 +67,23 @@ const authController = {
     },
 
     logout: (request, response) => {
-        response.clearCookie('jwtToken');
+        response.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV ===
+                'production',
+            path: '/',
+            sameSite: process.env.NODE_ENV ===
+                'production' ? 'None' : 'Lax'
+        });
+        response.clearCookie('jwtToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV ===
+                'production',
+            path: '/',
+            sameSite: process.env.NODE_ENV ===
+                'production' ? 'None' : 'Lax'
+
+        });
         response.json({ message: 'Logout successfull' });
     },
 
@@ -81,17 +97,17 @@ const authController = {
         jwt.verify(token, secret, async (error, user) => {
             if (error) {
                 const refreshToken = request.cookies?.refreshToken;
-                if(refreshToken){
-                    const {newAccessToken, user} = 
+                if (refreshToken) {
+                    const { newAccessToken, user } =
                         await attemptToRefreshToken(refreshToken);
                     response.cookie('jwtToken', newAccessToken, {
-                       httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        path: '/',
+                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
                     });
                     console.log('Refresh token renewed the access token');
-                    return response.json({message: 'User is logged in', user: user});
+                    return response.json({ message: 'User is logged in', user: user });
                 }
 
                 return response.status(401).json({ message: 'Unauthorized access' });
@@ -135,10 +151,10 @@ const authController = {
             const token = jwt.sign(userDetails, secret, { expiresIn: '1h' });
 
             response.cookie('jwtToken', token, {
-                 httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
             response.json({ message: 'User registered', user: userDetails });
         } catch (error) {
@@ -186,10 +202,10 @@ const authController = {
             // making 1 minute only for testing, revert it back to 1h
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
-                 httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
 
             const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
@@ -197,9 +213,9 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
@@ -209,11 +225,11 @@ const authController = {
     },
 
     refreshToken: async (request, response) => {
-      
+
     },
 
 
-     sendResetPasswordToken: async (req, res) => {
+    sendResetPasswordToken: async (req, res) => {
         try {
             const { email } = req.body;
             if (!email) return res.status(400).json({ message: 'Email is required' });

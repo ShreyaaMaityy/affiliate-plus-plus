@@ -16,14 +16,14 @@ const authMiddleware = {
                 next();
             } catch (error) {
                 const refreshToken = request.cookies?.refreshToken;
-                if(refreshToken){
-                    const {newAccessToken, user} = 
+                if (refreshToken) {
+                    const { newAccessToken, user } =
                         await attemptToRefreshToken(refreshToken);
                     response.cookie('jwtToken', newAccessToken, {
                         httpOnly: true,
-               secure: process.env.NODE_ENV === 'production',
-               path: '/',
-               sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                        secure: process.env.NODE_ENV === 'production',
+                        path: '/',
+                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
                     });
                     request.user = user;
                     next();
