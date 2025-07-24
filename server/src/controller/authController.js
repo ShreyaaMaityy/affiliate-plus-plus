@@ -45,9 +45,9 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                sameSite: 'None'
             });
 
             const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
@@ -55,9 +55,9 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                sameSite: 'None'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
@@ -69,19 +69,15 @@ const authController = {
     logout: (request, response) => {
         response.clearCookie('refreshToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV ===
-                'production',
+            secure: true,
             path: '/',
-            sameSite: process.env.NODE_ENV ===
-                'production' ? 'None' : 'Lax'
+            sameSite: 'None'
         });
         response.clearCookie('jwtToken', {
             httpOnly: true,
-            secure: process.env.NODE_ENV ===
-                'production',
+            secure: true,
             path: '/',
-            sameSite: process.env.NODE_ENV ===
-                'production' ? 'None' : 'Lax'
+            sameSite: 'None'
 
         });
         response.json({ message: 'Logout successfull' });
@@ -102,9 +98,9 @@ const authController = {
                         await attemptToRefreshToken(refreshToken);
                     response.cookie('jwtToken', newAccessToken, {
                         httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production',
+                        secure: true,
                         path: '/',
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                        sameSite: 'None'
                     });
                     console.log('Refresh token renewed the access token');
                     return response.json({ message: 'User is logged in', user: user });
@@ -152,9 +148,9 @@ const authController = {
 
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                sameSite: 'None'
             });
             response.json({ message: 'User registered', user: userDetails });
         } catch (error) {
@@ -203,9 +199,9 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                sameSite: 'None'
             });
 
             const refreshToken = jwt.sign(user, refreshSecret, { expiresIn: '7d' });
@@ -213,9 +209,9 @@ const authController = {
             // make refresh tokens more secure
             response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
                 path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+                sameSite: 'None'
             });
             response.json({ user: user, message: 'User authenticated' });
         } catch (error) {
