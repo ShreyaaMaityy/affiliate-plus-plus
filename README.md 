@@ -1,0 +1,45 @@
+# Affiliate Link Sharing (Affiliate++)
+
+A MERN stack web application that allows users to create, manage, and track affiliate links efficiently.  
+The platform is designed as a SaaS solution for content creators, marketers, and businesses to optimize affiliate marketing campaigns.
+
+---
+
+## 🚀 Live Demo
+The project is already deployed here:  
+👉 [Deployed Website Link](https://magical-mousse-326f31.netlify.app/)  
+
+---
+
+## 📌 Problem Statement
+In the digital age, affiliate marketing is a popular monetization strategy, but managing links manually leads to:
+- Loss of tracking data
+- Link duplication
+- Lack of performance insights  
+
+**Affiliate++** solves this by offering:
+- Link shortening  
+- Performance tracking (clicks, conversions)  
+- Campaign organization  
+- Analytics and reporting  
+- Role-based access for team collaboration  
+
+---
+
+## 🎯 Target Audience
+- **Content Creators** (YouTubers, bloggers, influencers)
+- **Digital Marketing Agencies**
+- **Small Business Owners / Entrepreneurs**
+- **Students & College Clubs**
+- **Affiliate Program Managers**
+
+---
+
+## 🛠 Tech Stack
+- **Frontend**: React (with React Router, Redux/Context if included)  
+- **Backend**: Node.js, Express  
+- **Database**: MongoDB / MongoDB Atlas  
+- **Authentication**: JWT & Google OAuth  
+- **Other Services**: Gmail (for notifications), Razorpay (for payments), Cloudinary (for image storage)
+
+
